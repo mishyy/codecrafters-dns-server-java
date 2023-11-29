@@ -25,6 +25,7 @@ public record Header(short id, boolean qr, byte opCode, boolean aa, boolean tc, 
 
     @Override
     public void write(final ByteBuffer buffer) {
+        // ID
         buffer.putShort(id);
 
         final var flags = new BitSet(16);
@@ -38,7 +39,10 @@ public record Header(short id, boolean qr, byte opCode, boolean aa, boolean tc, 
         flags.set(9, tc);
         flags.set(8, rd);
         flags.set(7, ra);
-        flags.clear(4, 7);
+        final var z = BitSet.valueOf(new byte[]{this.z});
+        flags.set(6, z.get(2));
+        flags.set(5, z.get(1));
+        flags.set(4, z.get(0));
         final var rCode = BitSet.valueOf(new byte[]{this.rCode.value()});
         flags.set(3, rCode.get(3));
         flags.set(2, rCode.get(2));

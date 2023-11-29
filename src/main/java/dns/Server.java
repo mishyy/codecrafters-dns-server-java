@@ -16,7 +16,7 @@ public final class Server {
                 header.opCode(),
                 false,
                 false,
-                false,
+                header.rd(),
                 false,
                 (byte) 0,
                 ResponseCode.NO_ERROR,
