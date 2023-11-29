@@ -46,9 +46,6 @@ public final class Parser {
     private Header parseHeader(final ByteBuffer buffer) {
         final short id = buffer.getShort();
 
-        final byte[] flagsBytes = new byte[2];
-        buffer.get(flagsBytes);
-
         final var flags = BitSet.valueOf(buffer.alignedSlice(2));
         final var qr = flags.get(0);
         final var opCode = getByte(flags.get(1, 5));
@@ -58,6 +55,7 @@ public final class Parser {
         final var ra = flags.get(8);
         final var z = getByte(flags.get(9, 12));
         final var rCode = Header.RCode.from(getByte(flags.get(12, 16)));
+
         final var qdCount = buffer.getShort();
         final var anCount = buffer.getShort();
         final var nsCount = buffer.getShort();

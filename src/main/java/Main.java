@@ -14,17 +14,18 @@ public final class Main {
         System.out.println("Logs from your program will appear here!");
 
         try (final var socket = new DatagramSocket(2053)) {
-	        do {
-		        final var inBuf = new byte[512];
-		        final var packet = new DatagramPacket(inBuf, inBuf.length);
-		        socket.receive(packet);
+            do {
+                final var inBuf = new byte[512];
+                final var packet = new DatagramPacket(inBuf, inBuf.length);
+                socket.receive(packet);
+                System.out.println(packet);
 
-		        final var dnsPacket = PARSER.parse(packet);
-		        final var dnsResponse = SERVER.handle(dnsPacket);
-		        final var outBuf = PARSER.parse(dnsResponse);
-		        final var response = new DatagramPacket(outBuf, outBuf.length, packet.getSocketAddress());
-		        socket.send(response);
-	        } while (true);
+                final var dnsPacket = PARSER.parse(packet);
+                final var dnsResponse = SERVER.handle(dnsPacket);
+                final var outBuf = PARSER.parse(dnsResponse);
+                final var response = new DatagramPacket(outBuf, outBuf.length, packet.getSocketAddress());
+                socket.send(response);
+            } while (true);
         } catch (final IOException e) {
             System.out.println("IOException: " + e.getMessage());
         }
