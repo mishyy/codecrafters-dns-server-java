@@ -1,10 +1,10 @@
 import dns.Parser;
 import dns.Server;
-import dns.util.Bytes;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public final class Main {
@@ -18,21 +18,20 @@ public final class Main {
         System.out.println("Logs from your program will appear here!");
         try (final var socket = new DatagramSocket(2053)) {
             while (true) {
-                System.out.printf("#%d — Receiving data...%n", COUNTER.incrementAndGet());
                 final var inBuf = new byte[12];
                 final var inPacket = new DatagramPacket(inBuf, inBuf.length);
                 socket.receive(inPacket);
 
                 final var request = parser.readPacket(inBuf);
-                System.out.printf("#%d(in) — %s%n", COUNTER.get(), request);
-                System.out.printf("#%d(in) — %s%n", COUNTER.get(), Bytes.toBinaryString(inBuf));
+                System.out.printf("#%d(in) :: %s%n", COUNTER.get(), request);
+                System.out.printf("#%d(in) :: %s%n", COUNTER.get(), Arrays.toString(inBuf));
                 final var response = server.handle(request);
 
                 final var outBuf = parser.writePacket(response);
                 final var outPacket = new DatagramPacket(outBuf, outBuf.length, inPacket.getSocketAddress());
                 socket.send(outPacket);
                 System.out.printf("#%d(out) :: %s%n", COUNTER.get(), response);
-                System.out.printf("#%d(out) :: %s%n", COUNTER.get(), Bytes.toBinaryString(outBuf));
+                System.out.printf("#%d(out) :: %s%n", COUNTER.get(), Arrays.toString(outBuf));
             }
         } catch (final IOException e) {
             System.err.println("IOException: " + e.getMessage());

@@ -37,7 +37,7 @@ public final class Parser {
     private Header parseHeader(final ByteBuffer buffer) {
         final short id = buffer.getShort();
 
-        var flags = BitSet.valueOf(buffer.slice(3, 2));
+        final var flags = BitSet.valueOf(buffer.slice(buffer.position(), 2));
         final var qr = flags.get(15);
         final var opCode = Bytes.valueOrZero(flags.get(11, 15));
         final var aa = flags.get(10);
