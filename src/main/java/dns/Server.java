@@ -20,9 +20,9 @@ public final class Server {
                 false,
                 (byte) 0,
                 ResponseCode.FORMAT_ERROR,
-                (short) 0,
                 (short) 256,
                 (short) 1,
+                (short) 0,
                 (short) 0
         );
         return new Packet(responseHeader, List.of(), List.of(), List.of(), List.of());
