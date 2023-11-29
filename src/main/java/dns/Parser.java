@@ -25,7 +25,7 @@ public final class Parser {
     }
 
     public byte[] writePacket(final Packet packet) {
-        final var buffer = ByteBuffer.allocate(512);
+        final var buffer = ByteBuffer.allocate(12);
         packet.header().write(buffer);
 //        packet.questions().forEach(question -> question.write(buffer));
 //        packet.answers().forEach(answer -> answer.write(buffer));

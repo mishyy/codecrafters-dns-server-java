@@ -19,18 +19,20 @@ public final class Main {
         try (final var socket = new DatagramSocket(2053)) {
             while (true) {
                 System.out.printf("#%d — Receiving data...%n", COUNTER.incrementAndGet());
-                final var inBuf = new byte[512];
+                final var inBuf = new byte[12];
                 final var inPacket = new DatagramPacket(inBuf, inBuf.length);
                 socket.receive(inPacket);
 
-                System.out.printf("#%d — Received request: %s%n", COUNTER.get(), Bytes.toHexDump(inBuf));
                 final var request = parser.readPacket(inBuf);
+                System.out.printf("#%d(in) — %s%n", COUNTER.get(), request);
+                System.out.printf("#%d(in) — %s%n", COUNTER.get(), Bytes.toBinaryString(inBuf));
                 final var response = server.handle(request);
 
                 final var outBuf = parser.writePacket(response);
                 final var outPacket = new DatagramPacket(outBuf, outBuf.length, inPacket.getSocketAddress());
                 socket.send(outPacket);
-                System.out.printf("#%d — Sent response: %s%n", COUNTER.get(), Bytes.toHexDump(outBuf));
+                System.out.printf("#%d(out) :: %s%n", COUNTER.get(), response);
+                System.out.printf("#%d(out) :: %s%n", COUNTER.get(), Bytes.toBinaryString(outBuf));
             }
         } catch (final IOException e) {
             System.err.println("IOException: " + e.getMessage());
