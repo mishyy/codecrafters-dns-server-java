@@ -39,6 +39,8 @@ public record Header(short id, boolean qr, byte opCode, boolean aa, boolean tc, 
         flags.set(2, aa);
         flags.set(1, tc);
         flags.set(0, rd);
+        var value = Bytes.valueOrZero(flags);
+        assert value != 0 : "we should never get 0 as qr is always set";
         buffer.put(Bytes.valueOrZero(flags));
 
         flags.set(7, ra);

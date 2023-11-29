@@ -39,7 +39,7 @@ public final class Parser {
 
         final var flags = BitSet.valueOf(buffer.slice(buffer.position(), 2));
         final var qr = flags.get(15);
-        final var opCode = Bytes.valueOrZero(flags.get(11, 15));
+        final var opCode = Bytes.valueOrZero(flags.get(10, 15));
         final var aa = flags.get(10);
         final var tc = flags.get(9);
         final var rd = flags.get(8);
