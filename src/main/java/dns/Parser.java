@@ -26,15 +26,25 @@ public final class Parser {
         buffer.putShort(header.id());
 
         var flags = new BitSet(16);
-        flags.set(0, header.qr());
-        setByte(flags, 1, header.opCode());
-        flags.set(5, header.aa());
-        flags.set(6, header.tc());
+        flags.set(15, header.qr());
+        setByte(flags, 10, header.opCode());
+        flags.set(9, header.aa());
+        flags.set(8, header.tc());
         flags.set(7, header.rd());
-        flags.set(8, header.ra());
-        flags.clear(9, 12);
-        setByte(flags, 12, header.rCode().value());
+        flags.set(6, header.ra());
+        flags.clear(3, 6);
+        setByte(flags, 0, header.rCode().value());
         buffer.put(flags.toByteArray());
+
+//        flags.set(0, header.qr());
+//        setByte(flags, 1, header.opCode());
+//        flags.set(5, header.aa());
+//        flags.set(6, header.tc());
+//        flags.set(7, header.rd());
+//        flags.set(8, header.ra());
+//        flags.clear(9, 12);
+//        setByte(flags, 12, header.rCode().value());
+//        buffer.put(flags.toByteArray());
 
         buffer.putShort(header.qdCount());
         buffer.putShort(header.anCount());
@@ -48,14 +58,23 @@ public final class Parser {
         final var flagBytes = new byte[2];
         buffer.get(flagBytes);
         final var flags = BitSet.valueOf(flagBytes);
-        final var qr = flags.get(0);
-        final var opCode = getByte(flags.get(1, 5));
-        final var aa = flags.get(5);
-        final var tc = flags.get(6);
+        final var qr = flags.get(15);
+        final var opCode = getByte(flags.get(10, 15));
+        final var aa = flags.get(9);
+        final var tc = flags.get(8);
         final var rd = flags.get(7);
-        final var ra = flags.get(8);
-        final var z = getByte(flags.get(9, 12));
-        final var rCode = Header.RCode.from(getByte(flags.get(12, 16)));
+        final var ra = flags.get(6);
+        final var z = getByte(flags.get(4, 1));
+        final var rCode = Header.RCode.from(getByte(flags.get(0, 4)));
+
+//        final var qr = flags.get(0);
+//        final var opCode = getByte(flags.get(1, 5));
+//        final var aa = flags.get(5);
+//        final var tc = flags.get(6);
+//        final var rd = flags.get(7);
+//        final var ra = flags.get(8);
+//        final var z = getByte(flags.get(9, 12));
+//        final var rCode = Header.RCode.from(getByte(flags.get(12, 16)));
 
         final var qdCount = buffer.getShort();
         final var anCount = buffer.getShort();
