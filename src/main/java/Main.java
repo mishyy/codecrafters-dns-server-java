@@ -1,10 +1,10 @@
 import dns.Parser;
 import dns.Server;
+import dns.util.Bytes;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public final class Main {
@@ -23,14 +23,14 @@ public final class Main {
                 final var inPacket = new DatagramPacket(inBuf, inBuf.length);
                 socket.receive(inPacket);
 
-                System.out.printf("#%d — Received request: %s%n", COUNTER.get(), Arrays.toString(inBuf));
+                System.out.printf("#%d — Received request: %s%n", COUNTER.get(), Bytes.toHexDump(inBuf));
                 final var request = parser.readPacket(inBuf);
                 final var response = server.handle(request);
 
                 final var outBuf = parser.writePacket(response);
                 final var outPacket = new DatagramPacket(outBuf, outBuf.length, inPacket.getSocketAddress());
                 socket.send(outPacket);
-                System.out.printf("#%d — Sent response: %s%n", COUNTER.get(), Arrays.toString(outBuf));
+                System.out.printf("#%d — Sent response: %s%n", COUNTER.get(), Bytes.toHexDump(outBuf));
             }
         } catch (final IOException e) {
             System.err.println("IOException: " + e.getMessage());

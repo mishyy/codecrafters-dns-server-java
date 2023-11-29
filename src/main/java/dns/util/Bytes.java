@@ -9,4 +9,12 @@ public final class Bytes {
         return bytes.length != 0 ? bytes[0] : 0;
     }
 
+    public static String toHexDump(final byte[] bytes) {
+        final var builder = new StringBuilder();
+        for (final var b : bytes) {
+            builder.append(String.format("%02x ", b)).append(" ");
+        }
+        return builder.toString();
+    }
+
 }

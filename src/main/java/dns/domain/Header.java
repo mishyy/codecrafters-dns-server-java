@@ -25,7 +25,6 @@ public record Header(short id, boolean qr, byte opCode, boolean aa, boolean tc, 
 
     @Override
     public void write(final ByteBuffer buffer) {
-        // ID
         buffer.putShort(id);
 
         final var flags = new BitSet(16);
