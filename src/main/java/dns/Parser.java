@@ -3,7 +3,6 @@ package dns;
 import dns.domain.Header;
 import dns.domain.Packet;
 
-import java.net.DatagramPacket;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.BitSet;
@@ -11,14 +10,14 @@ import java.util.List;
 
 public final class Parser {
 
-    public Packet parse(final DatagramPacket packet) {
-        final var buffer = ByteBuffer.wrap(packet.getData()).order(ByteOrder.BIG_ENDIAN);
+    public Packet readPacket(final byte[] data) {
+        final var buffer = ByteBuffer.wrap(data).order(ByteOrder.BIG_ENDIAN);
         final var header = parseHeader(buffer);
         return new Packet(header, List.of(), List.of(), List.of(), List.of());
     }
 
-    public byte[] parse(final Packet response) {
-        final var buffer = ByteBuffer.allocate(512).order(ByteOrder.BIG_ENDIAN);
+    public byte[] writePacket(final Packet response) {
+        final var buffer = ByteBuffer.allocate(512);
         writeHeader(buffer, response.header());
         return buffer.rewind().array();
     }
@@ -46,7 +45,9 @@ public final class Parser {
     private Header parseHeader(final ByteBuffer buffer) {
         final short id = buffer.getShort();
 
-        final var flags = BitSet.valueOf(buffer.alignedSlice(2));
+        final var flagBytes = new byte[2];
+        buffer.get(flagBytes);
+        final var flags = BitSet.valueOf(flagBytes);
         final var qr = flags.get(0);
         final var opCode = getByte(flags.get(1, 5));
         final var aa = flags.get(5);
@@ -84,8 +85,9 @@ public final class Parser {
 
     private void setByte(final BitSet flags, final int startIndex, final byte value) {
         final var bitSet = BitSet.valueOf(new byte[]{value});
-        for (int i = 0; i < 4; i++) {
-            flags.set(startIndex + i, bitSet.get(i));
+        final var length = bitSet.length() - 1;
+        for (int i = 0; i <= length; i++) {
+            flags.set(startIndex + i, bitSet.get(length - i));
         }
     }
 

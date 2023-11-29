@@ -4,6 +4,7 @@ import dns.Server;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.util.Arrays;
 
 public final class Main {
 
@@ -16,16 +17,17 @@ public final class Main {
         try (final var socket = new DatagramSocket(2053)) {
             do {
                 final var inBuf = new byte[512];
-                final var packet = new DatagramPacket(inBuf, inBuf.length);
-                socket.receive(packet);
-                System.out.println(packet);
+                final var inPacket = new DatagramPacket(inBuf, inBuf.length);
+                socket.receive(inPacket);
 
-                final var dnsPacket = PARSER.parse(packet);
-                final var dnsResponse = SERVER.handle(dnsPacket);
-                final var outBuf = PARSER.parse(dnsResponse);
-                final var response = new DatagramPacket(outBuf, outBuf.length, packet.getSocketAddress());
-                socket.send(response);
-            } while (true);
+                System.out.println(Arrays.toString(inBuf));
+                final var request = PARSER.readPacket(inBuf);
+                final var response = SERVER.handle(request);
+
+                final var outBuf = PARSER.writePacket(response);
+                final var outPacket = new DatagramPacket(outBuf, outBuf.length, inPacket.getSocketAddress());
+                socket.send(outPacket);
+            } while (!socket.isClosed());
         } catch (final IOException e) {
             System.out.println("IOException: " + e.getMessage());
         }
