@@ -60,11 +60,11 @@ public final class Parser {
         final var flags = BitSet.valueOf(flagBytes);
         final var qr = flags.get(15);
         final var opCode = getByte(flags.get(10, 15));
-        final var aa = flags.get(9);
-        final var tc = flags.get(8);
-        final var rd = flags.get(7);
-        final var ra = flags.get(6);
-        final var z = getByte(flags.get(4, 1));
+        final var aa = flags.get(10);
+        final var tc = flags.get(9);
+        final var rd = flags.get(8);
+        final var ra = flags.get(7);
+        final var z = getByte(flags.get(4, 7));
         final var rCode = Header.RCode.from(getByte(flags.get(0, 4)));
 
 //        final var qr = flags.get(0);
