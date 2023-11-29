@@ -15,19 +15,20 @@ public final class Main {
         System.out.println("Logs from your program will appear here!");
 
         try (final var socket = new DatagramSocket(2053)) {
-            do {
-                final var inBuf = new byte[512];
-                final var inPacket = new DatagramPacket(inBuf, inBuf.length);
-                socket.receive(inPacket);
+	        while (true) {
+		        final var inBuf = new byte[512];
+		        final var inPacket = new DatagramPacket(inBuf, inBuf.length);
+		        socket.receive(inPacket);
 
-                System.out.println(Arrays.toString(inBuf));
-                final var request = PARSER.readPacket(inBuf);
-                final var response = SERVER.handle(request);
+                System.err.println("Received request: " + Arrays.toString(inBuf));
+		        final var request = PARSER.readPacket(inBuf);
+		        final var response = SERVER.handle(request);
 
-                final var outBuf = PARSER.writePacket(response);
-                final var outPacket = new DatagramPacket(outBuf, outBuf.length, inPacket.getSocketAddress());
-                socket.send(outPacket);
-            } while (!socket.isClosed());
+		        final var outBuf = PARSER.writePacket(response);
+		        final var outPacket = new DatagramPacket(outBuf, outBuf.length, inPacket.getSocketAddress());
+		        socket.send(outPacket);
+                System.out.println("End\n");
+	        }
         } catch (final IOException e) {
             System.out.println("IOException: " + e.getMessage());
         }
