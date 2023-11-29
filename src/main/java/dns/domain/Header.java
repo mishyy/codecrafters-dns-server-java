@@ -28,6 +28,7 @@ public record Header(short id, boolean qr, byte opCode, boolean aa, boolean tc, 
         buffer.putShort(id);
 
         final var flags = new BitSet(16);
+        flags.set(15, qr);
         final var opCode = BitSet.valueOf(new byte[]{this.opCode});
         flags.set(14, opCode.get(3));
         flags.set(13, opCode.get(2));

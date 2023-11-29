@@ -13,4 +13,5 @@ public record Packet(
         List<ResourceRecord> answers,
         List<ResourceRecord> authorities,
         List<ResourceRecord> additional
-) {}
+) {
+}

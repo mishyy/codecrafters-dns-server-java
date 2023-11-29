@@ -38,15 +38,14 @@ public final class Parser {
         final short id = buffer.getShort();
 
         final var flags = BitSet.valueOf(buffer.slice(16, 32));
-        final var qr = flags.get(0);
-        final var opCode = Bytes.valueOrZero(flags.get(1, 5));
-        final var aa = flags.get(5);
-        final var tc = flags.get(6);
-        final var rd = flags.get(7);
-        final var ra = flags.get(8);
-        final var z = Bytes.valueOrZero(flags.get(9, 12));
-
-        final var rCodeRaw = Bytes.valueOrZero(flags.get(12, 16));
+        final var qr = flags.get(15);
+        final var opCode = Bytes.valueOrZero(flags.get(11, 15));
+        final var aa = flags.get(10);
+        final var tc = flags.get(9);
+        final var rd = flags.get(8);
+        final var ra = flags.get(7);
+        final var z = Bytes.valueOrZero(flags.get(4, 7));
+        final var rCodeRaw = Bytes.valueOrZero(flags.get(0, 4));
         final var rCode = ResponseCode.from(rCodeRaw);
 
         final var qdCount = buffer.getShort();
