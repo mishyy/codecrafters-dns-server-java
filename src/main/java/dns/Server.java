@@ -2,28 +2,30 @@ package dns;
 
 import dns.domain.Header;
 import dns.domain.Packet;
+import dns.domain.ResponseCode;
 
 import java.util.List;
 
 public final class Server {
 
     public Packet handle(final Packet packet) {
-        final var header = new Header(
-                packet.header().id(),
+        final var header = packet.header();
+        final var responseHeader = new Header(
+                header.id(),
                 true,
-                (byte) 0,
+                header.opCode(),
                 false,
                 false,
                 false,
                 false,
                 (byte) 0,
-                Header.RCode.NO_ERROR,
+                ResponseCode.NO_ERROR,
                 (short) 0,
                 (short) 0,
                 (short) 0,
                 (short) 0
         );
-        return new Packet(header, List.of(), List.of(), List.of(), List.of());
+        return new Packet(responseHeader, List.of(), List.of(), List.of(), List.of());
     }
 
 }

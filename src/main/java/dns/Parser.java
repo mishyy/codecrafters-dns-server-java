@@ -2,112 +2,84 @@ package dns;
 
 import dns.domain.Header;
 import dns.domain.Packet;
+import dns.domain.Question;
+import dns.domain.ResponseCode;
+import dns.domain.records.ResourceRecord;
+import dns.util.Bytes;
 
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
+import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 
 public final class Parser {
 
-    public Packet readPacket(final byte[] data) {
-        final var buffer = ByteBuffer.wrap(data).order(ByteOrder.BIG_ENDIAN);
+    public Packet readPacket(final byte[] bytes) {
+        final var buffer = ByteBuffer.wrap(bytes);
         final var header = parseHeader(buffer);
+//        final var questions = parseQuestions(buffer, header.qdCount());
+//        final var answers = parseRecords(buffer, header.anCount());
+//        final var authorities = parseRecords(buffer, header.nsCount());
+//        final var additions = parseRecords(buffer, header.arCount());
         return new Packet(header, List.of(), List.of(), List.of(), List.of());
     }
 
-    public byte[] writePacket(final Packet response) {
+    public byte[] writePacket(final Packet packet) {
         final var buffer = ByteBuffer.allocate(512);
-        writeHeader(buffer, response.header());
+        packet.header().write(buffer);
+//        packet.questions().forEach(question -> question.write(buffer));
+//        packet.answers().forEach(answer -> answer.write(buffer));
+//        packet.authorities().forEach(authority -> authority.write(buffer));
+//        packet.additional().forEach(addition -> addition.write(buffer));
         return buffer.rewind().array();
-    }
-
-    private void writeHeader(final ByteBuffer buffer, final Header header) {
-        buffer.putShort(header.id());
-
-        var flags = new BitSet(16);
-        flags.set(15, header.qr());
-        setByte(flags, 10, header.opCode());
-        flags.set(9, header.aa());
-        flags.set(8, header.tc());
-        flags.set(7, header.rd());
-        flags.set(6, header.ra());
-        flags.clear(3, 6);
-        setByte(flags, 0, header.rCode().value());
-        buffer.put(flags.toByteArray());
-
-//        flags.set(0, header.qr());
-//        setByte(flags, 1, header.opCode());
-//        flags.set(5, header.aa());
-//        flags.set(6, header.tc());
-//        flags.set(7, header.rd());
-//        flags.set(8, header.ra());
-//        flags.clear(9, 12);
-//        setByte(flags, 12, header.rCode().value());
-//        buffer.put(flags.toByteArray());
-
-        buffer.putShort(header.qdCount());
-        buffer.putShort(header.anCount());
-        buffer.putShort(header.nsCount());
-        buffer.putShort(header.arCount());
     }
 
     private Header parseHeader(final ByteBuffer buffer) {
         final short id = buffer.getShort();
 
-        final var flagBytes = new byte[2];
-        buffer.get(flagBytes);
-        final var flags = BitSet.valueOf(flagBytes);
-        final var qr = flags.get(15);
-        final var opCode = getByte(flags.get(10, 15));
-        final var aa = flags.get(10);
-        final var tc = flags.get(9);
-        final var rd = flags.get(8);
-        final var ra = flags.get(7);
-        final var z = getByte(flags.get(4, 7));
-        final var rCode = Header.RCode.from(getByte(flags.get(0, 4)));
+        final var flags = BitSet.valueOf(buffer.slice(16, 32));
+        final var qr = flags.get(0);
+        final var opCode = Bytes.valueOrZero(flags.get(1, 5));
+        final var aa = flags.get(5);
+        final var tc = flags.get(6);
+        final var rd = flags.get(7);
+        final var ra = flags.get(8);
+        final var z = Bytes.valueOrZero(flags.get(9, 12));
 
-//        final var qr = flags.get(0);
-//        final var opCode = getByte(flags.get(1, 5));
-//        final var aa = flags.get(5);
-//        final var tc = flags.get(6);
-//        final var rd = flags.get(7);
-//        final var ra = flags.get(8);
-//        final var z = getByte(flags.get(9, 12));
-//        final var rCode = Header.RCode.from(getByte(flags.get(12, 16)));
+        final var rCodeRaw = Bytes.valueOrZero(flags.get(12, 16));
+        final var rCode = ResponseCode.from(rCodeRaw);
 
         final var qdCount = buffer.getShort();
         final var anCount = buffer.getShort();
         final var nsCount = buffer.getShort();
         final var arCount = buffer.getShort();
-        return new Header(
-                id,
-                qr,
-                opCode,
-                aa,
-                tc,
-                rd,
-                ra,
-                z,
-                rCode,
-                qdCount,
-                anCount,
-                nsCount,
-                arCount
-        );
+        return new Header(id, qr, opCode, aa, tc, rd, ra, z, rCode, qdCount, anCount, nsCount, arCount);
     }
 
-    private byte getByte(final BitSet bitSet) {
-        final var bytes = bitSet.toByteArray();
-        return bytes.length != 0 ? bytes[0] : 0;
-    }
-
-    private void setByte(final BitSet flags, final int startIndex, final byte value) {
-        final var bitSet = BitSet.valueOf(new byte[]{value});
-        final var length = bitSet.length() - 1;
-        for (int i = 0; i <= length; i++) {
-            flags.set(startIndex + i, bitSet.get(length - i));
+    private List<Question> parseQuestions(final ByteBuffer buffer, final int count) {
+        final var questions = new ArrayList<Question>();
+        for (int i = 0; i < count; i++) {
+            final String name = new String(buffer.slice().array()); // TODO: fix
+            final var type = buffer.getShort();
+            final var clazz = buffer.getShort();
+            questions.add(new Question(name, type, clazz));
         }
+        return questions;
+    }
+
+    private List<ResourceRecord> parseRecords(final ByteBuffer buffer, final int count) {
+        final var records = new ArrayList<ResourceRecord>();
+        for (int i = 0; i < count; i++) {
+            final var name = new String(buffer.slice().array()); // TODO: fix
+            final var type = buffer.getShort();
+            final var clazz = buffer.getShort();
+            final var ttl = buffer.getInt();
+            final var rdLength = buffer.getShort();
+            final var rData = new byte[rdLength];
+            buffer.get(rData);
+            records.add(new ResourceRecord(name, type, clazz, ttl, rdLength, rData));
+        }
+        return records;
     }
 
 }

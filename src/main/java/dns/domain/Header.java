@@ -1,48 +1,54 @@
 package dns.domain;
 
-import java.util.NoSuchElementException;
+import java.nio.ByteBuffer;
+import java.util.BitSet;
 
-public record Header(
-        short id, // Packet Identifier; 16 bits
-        boolean qr, // Query/Response Indicator; 1 bit
-        byte opCode, // Operation Code; 4 bits
-        boolean aa, // Authoritative Answer; 1 bit
-        boolean tc, // Truncation Flag; 1 bit
-        boolean rd, // Recursion Desired; 1 bit
-        boolean ra, // Recursion Available; 1 bit
-        byte z, // Reserved for future use; DNSSEC; 3 bits
-        RCode rCode, // Response Code; 4 bits
-        short qdCount, // Question Count; 16 bits
-        short anCount, // Answer Record Count; 16 bits
-        short nsCount, // Authority Record Count; 16 bits
-        short arCount // Additional Record Count; 16 bits
-) {
-    public enum RCode {
-        NO_ERROR((byte) 0),
-        FORMAT_ERROR((byte) 1),
-        SERVER_FAILURE((byte) 2),
-        NAME_ERROR((byte) 3),
-        NOT_IMPLEMENTED((byte) 4),
-        REFUSED((byte) 5);
+/**
+ * Represents a DNS packet header.
+ *
+ * @param id      The identification number of the packet.
+ * @param qr      The query/response flag.
+ * @param opCode  The operation code.
+ * @param aa      The authoritative answer flag.
+ * @param tc      The truncation flag.
+ * @param rd      The recursion desired flag.
+ * @param ra      The recursion availability flag.
+ * @param z       Reserved bits.
+ * @param rCode   The response code.
+ * @param qdCount The number of question in the packet.
+ * @param anCount The number of answer resource records in the packet.
+ * @param nsCount The number of authority resource records in the packet.
+ * @param arCount The number of additional resource records in the packet.
+ */
+public record Header(short id, boolean qr, byte opCode, boolean aa, boolean tc, boolean rd, boolean ra, byte z,
+                     ResponseCode rCode, short qdCount, short anCount, short nsCount, short arCount) implements Writer {
 
-        private static final RCode[] ALL = values();
-        private final byte value;
+    @Override
+    public void write(final ByteBuffer buffer) {
+        buffer.putShort(id);
 
-        RCode(final byte value) {
-            this.value = value;
-        }
+        final var flags = new BitSet(16);
+        final var opCode = BitSet.valueOf(new byte[]{this.opCode});
+        flags.set(14, opCode.get(3));
+        flags.set(13, opCode.get(2));
+        flags.set(12, opCode.get(1));
+        flags.set(11, opCode.get(0));
+        flags.set(10, aa);
+        flags.set(9, tc);
+        flags.set(8, rd);
+        flags.set(7, ra);
+        flags.clear(4, 7);
+        final var rCode = BitSet.valueOf(new byte[]{this.rCode.value()});
+        flags.set(3, rCode.get(3));
+        flags.set(2, rCode.get(2));
+        flags.set(1, rCode.get(1));
+        flags.set(0, rCode.get(0));
+        buffer.put(flags.toByteArray());
 
-        public static RCode from(final byte value) {
-            for (final var rCode : ALL) {
-                if (rCode.value == value) {
-                    return rCode;
-                }
-            }
-            throw new NoSuchElementException("Could not find RCode with value " + value + ".");
-        }
-
-        public byte value() {
-            return value;
-        }
+        buffer.putShort(qdCount);
+        buffer.putShort(anCount);
+        buffer.putShort(nsCount);
+        buffer.putShort(arCount);
     }
+
 }
