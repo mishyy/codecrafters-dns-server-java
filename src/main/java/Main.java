@@ -22,6 +22,8 @@ public final class Main {
                 final var inPacket = new DatagramPacket(inBuf, inBuf.length);
                 socket.receive(inPacket);
 
+                COUNTER.incrementAndGet();
+
                 final var request = parser.readPacket(inBuf);
                 System.out.printf("#%d(in) :: %s%n", COUNTER.get(), request);
                 System.out.printf("#%d(in) :: %s%n", COUNTER.get(), Arrays.toString(inBuf));
