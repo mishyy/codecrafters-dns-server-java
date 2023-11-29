@@ -13,10 +13,10 @@ public final class Server {
         final var responseHeader = new Header(
                 header.id(),
                 true,
-                header.opCode(),
+                (byte) 0,
                 false,
                 false,
-                header.rd(),
+                false,
                 false,
                 (byte) 0,
                 ResponseCode.NO_ERROR,
