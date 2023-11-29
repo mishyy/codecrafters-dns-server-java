@@ -1,5 +1,7 @@
 package dns.domain;
 
+import dns.util.Bytes;
+
 import java.nio.ByteBuffer;
 import java.util.BitSet;
 
@@ -27,16 +29,18 @@ public record Header(short id, boolean qr, byte opCode, boolean aa, boolean tc, 
     public void write(final ByteBuffer buffer) {
         buffer.putShort(id);
 
-        final var flags = new BitSet(16);
-        flags.set(15, qr);
+        final var flags = new BitSet(8);
+        flags.set(7, qr);
         final var opCode = BitSet.valueOf(new byte[]{this.opCode});
-        flags.set(14, opCode.get(3));
-        flags.set(13, opCode.get(2));
-        flags.set(12, opCode.get(1));
-        flags.set(11, opCode.get(0));
-        flags.set(10, aa);
-        flags.set(9, tc);
-        flags.set(8, rd);
+        flags.set(6, opCode.get(3));
+        flags.set(5, opCode.get(2));
+        flags.set(4, opCode.get(1));
+        flags.set(3, opCode.get(0));
+        flags.set(2, aa);
+        flags.set(1, tc);
+        flags.set(0, rd);
+        buffer.put(Bytes.valueOrZero(flags));
+
         flags.set(7, ra);
         flags.clear(4, 7);
         final var rCode = BitSet.valueOf(new byte[]{this.rCode.value()});
@@ -44,7 +48,7 @@ public record Header(short id, boolean qr, byte opCode, boolean aa, boolean tc, 
         flags.set(2, rCode.get(2));
         flags.set(1, rCode.get(1));
         flags.set(0, rCode.get(0));
-        buffer.put(flags.toByteArray());
+        buffer.put(Bytes.valueOrZero(flags));
 
         buffer.putShort(qdCount);
         buffer.putShort(anCount);
