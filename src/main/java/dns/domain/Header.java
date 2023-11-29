@@ -46,7 +46,7 @@ public record Header(short id, boolean qr, byte opCode, boolean aa, boolean tc, 
         flags.set(2, rCode.get(2));
         flags.set(1, rCode.get(1));
         flags.set(0, rCode.get(0));
-        buffer.put(flags.toByteArray());
+        buffer.put(Bytes.reverse(flags));
 
         buffer.putShort(qdCount);
         buffer.putShort(anCount);
