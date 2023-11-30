@@ -9,23 +9,22 @@ import java.util.List;
 public final class Server {
 
     public Packet handle(final Packet packet) {
-        final var header = packet.header();
-        final var responseHeader = new Header(
-                header.id(),
+        final var header = new Header(
+                packet.header().id(),
                 true,
                 (byte) 0,
                 false,
                 false,
-                false,
+                packet.header().rd(),
                 false,
                 (byte) 0,
                 ResponseCode.NO_ERROR,
-                (short) 0,
-                (short) 0,
-                (short) 0,
-                (short) 0
+                (short) packet.questions().size(),
+                (short) packet.answers().size(),
+                (short) packet.authorities().size(),
+                (short) packet.additional().size()
         );
-        return new Packet(responseHeader, List.of(), List.of(), List.of(), List.of());
+        return new Packet(header, packet.questions(), List.of(), List.of(), List.of());
     }
 
 }

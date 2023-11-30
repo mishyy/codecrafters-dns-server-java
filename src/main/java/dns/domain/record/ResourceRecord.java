@@ -1,9 +1,10 @@
-package dns.domain.records;
+package dns.domain.record;
 
 import dns.domain.Writer;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 /**
  * Represents a DNS record.
@@ -16,18 +17,13 @@ import java.nio.charset.StandardCharsets;
  * @param rData    Resource data; variable bytes
  */
 public record ResourceRecord(
-        String name, short type, short clazz,
+        List<String> name, RecordType type, RecordClass clazz,
         int ttl, short rdLength, byte[] rData
 ) implements Writer {
 
     @Override
     public void write(final ByteBuffer buffer) {
-        buffer.put(name.getBytes(StandardCharsets.UTF_8));
-        buffer.putShort(type);
-        buffer.putShort(clazz);
-        buffer.putInt(ttl);
-        buffer.putShort(rdLength);
-        buffer.put(rData);
+
     }
 
 }

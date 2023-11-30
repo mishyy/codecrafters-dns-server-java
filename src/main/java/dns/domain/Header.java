@@ -17,7 +17,7 @@ import java.util.BitSet;
  * @param ra      The recursion availability flag.
  * @param z       Reserved bits.
  * @param rCode   The response code.
- * @param qdCount The number of question in the packet.
+ * @param qdCount The number of questions in the packet.
  * @param anCount The number of answer resource records in the packet.
  * @param nsCount The number of authority resource records in the packet.
  * @param arCount The number of additional resource records in the packet.
@@ -25,11 +25,34 @@ import java.util.BitSet;
 public record Header(short id, boolean qr, byte opCode, boolean aa, boolean tc, boolean rd, boolean ra, byte z,
                      ResponseCode rCode, short qdCount, short anCount, short nsCount, short arCount) implements Writer {
 
+    public static Header parse(final ByteBuffer buffer) {
+        final short id = buffer.getShort();
+
+        final var flagBytes = new byte[2];
+        buffer.get(flagBytes);
+        final var flags = BitSet.valueOf(flagBytes);
+        final var qr = flags.get(15);
+        final var opCode = Bytes.valueOrZero(flags.get(10, 15));
+        final var aa = flags.get(10);
+        final var tc = flags.get(9);
+        final var rd = flags.get(8);
+        final var ra = flags.get(7);
+        final var z = Bytes.valueOrZero(flags.get(4, 7));
+        final var rCodeRaw = Bytes.valueOrZero(flags.get(0, 4));
+        final var rCode = ResponseCode.parse(rCodeRaw);
+
+        final var qdCount = buffer.getShort();
+        final var anCount = buffer.getShort();
+        final var nsCount = buffer.getShort();
+        final var arCount = buffer.getShort();
+        return new Header(id, qr, opCode, aa, tc, rd, ra, z, rCode, qdCount, anCount, nsCount, arCount);
+    }
+
     @Override
     public void write(final ByteBuffer buffer) {
         buffer.putShort(id);
 
-        final var flags = new BitSet(16);
+        final var flags = new BitSet(8);
         flags.set(7, qr);
         final var opCode = BitSet.valueOf(new byte[]{this.opCode});
         flags.set(6, opCode.get(3));

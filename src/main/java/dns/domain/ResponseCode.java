@@ -18,7 +18,7 @@ public enum ResponseCode {
         this.value = value;
     }
 
-    public static ResponseCode from(final byte value) {
+    public static ResponseCode parse(final byte value) {
         for (final var rCode : ALL) {
             if (rCode.value == value) {
                 return rCode;
