@@ -1,9 +1,8 @@
 package dns.domain;
 
-import java.util.NoSuchElementException;
-
 public enum ResponseCode {
 
+    UNKNOWN((byte) -1),
     NO_ERROR((byte) 0),
     FORMAT_ERROR((byte) 1),
     SERVER_FAILURE((byte) 2),
@@ -24,7 +23,8 @@ public enum ResponseCode {
                 return rCode;
             }
         }
-        throw new NoSuchElementException("Could not find ResponseCode with value " + value + ".");
+        System.err.println("Unknown ResponseCode: " + value);
+        return UNKNOWN;
     }
 
     public byte value() {

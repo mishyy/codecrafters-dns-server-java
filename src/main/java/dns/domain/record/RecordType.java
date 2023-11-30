@@ -22,7 +22,12 @@ public enum RecordType implements Writer {
     H_INFO((short) 13),
     M_INFO((short) 14),
     MX((short) 15),
-    TXT((short) 16);
+    TXT((short) 16),
+    AXFR((short) 252),
+    MAILB((short) 253),
+    MAILA((short) 254),
+    ANY((short) 255);
+
 
     private static final RecordType[] ALL = values();
     private final short value;

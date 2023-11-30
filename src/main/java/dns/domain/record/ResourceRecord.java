@@ -4,6 +4,7 @@ import dns.domain.Writer;
 import dns.util.Labels;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -16,10 +17,8 @@ import java.util.List;
  * @param rdLength Resource data length; two bytes
  * @param rData    Resource data; variable bytes
  */
-public record ResourceRecord(
-        List<String> name, RecordType type, RecordClass clazz,
-        int ttl, short rdLength, byte[] rData
-) implements Writer {
+public record ResourceRecord(List<String> name, RecordType type, RecordClass clazz, int ttl, short rdLength,
+                             byte[] rData) implements Writer {
 
     public static ResourceRecord parse(final ByteBuffer buffer) {
         final var labels = Labels.parse(buffer);
@@ -42,4 +41,8 @@ public record ResourceRecord(
         buffer.put(rData);
     }
 
+    @Override
+    public String toString() {
+        return "ResourceRecord{" + "name=" + name + ", qType=" + type + ", qClass=" + clazz + ", ttl=" + ttl + ", rdLength=" + rdLength + ", rData=" + Arrays.toString(rData) + '}';
+    }
 }

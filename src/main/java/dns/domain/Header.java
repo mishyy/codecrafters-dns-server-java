@@ -1,9 +1,8 @@
 package dns.domain;
 
-import dns.util.Bytes;
+import dns.util.Booleans;
 
 import java.nio.ByteBuffer;
-import java.util.BitSet;
 
 /**
  * Represents a DNS packet header.
@@ -22,24 +21,21 @@ import java.util.BitSet;
  * @param nsCount The number of authority resource records in the packet.
  * @param arCount The number of additional resource records in the packet.
  */
-public record Header(short id, boolean qr, byte opCode, boolean aa, boolean tc, boolean rd, boolean ra, byte z,
+public record Header(short id, boolean qr, OpCode opCode, boolean aa, boolean tc, boolean rd, boolean ra, byte z,
                      ResponseCode rCode, short qdCount, short anCount, short nsCount, short arCount) implements Writer {
 
     public static Header parse(final ByteBuffer buffer) {
         final short id = buffer.getShort();
 
-        final var flagBytes = new byte[2];
-        buffer.get(flagBytes);
-        final var flags = BitSet.valueOf(flagBytes);
-        final var qr = flags.get(15);
-        final var opCode = Bytes.valueOrZero(flags.get(10, 15));
-        final var aa = flags.get(10);
-        final var tc = flags.get(9);
-        final var rd = flags.get(8);
-        final var ra = flags.get(7);
-        final var z = Bytes.valueOrZero(flags.get(4, 7));
-        final var rCodeRaw = Bytes.valueOrZero(flags.get(0, 4));
-        final var rCode = ResponseCode.parse(rCodeRaw);
+        final var flags = buffer.getShort();
+        final var qr = Booleans.fromInt(flags & 0x8000);
+        final var opCode = OpCode.parse((byte) ((flags & 0x7800) >> 11));
+        final var aa = Booleans.fromInt(flags & 0x0400);
+        final var tc = Booleans.fromInt(flags & 0x0200);
+        final var rd = Booleans.fromInt(flags & 0x0100);
+        final var ra = Booleans.fromInt(flags & 0x0080);
+        final var z = (byte) ((flags & 0x0070) >> 4);
+        final var rCode = ResponseCode.parse((byte) (flags & 0x000F));
 
         final var qdCount = buffer.getShort();
         final var anCount = buffer.getShort();
@@ -52,25 +48,15 @@ public record Header(short id, boolean qr, byte opCode, boolean aa, boolean tc, 
     public void write(final ByteBuffer buffer) {
         buffer.putShort(id);
 
-        final var flags = new BitSet(8);
-        flags.set(7, qr);
-        final var opCode = BitSet.valueOf(new byte[]{this.opCode});
-        flags.set(6, opCode.get(3));
-        flags.set(5, opCode.get(2));
-        flags.set(4, opCode.get(1));
-        flags.set(3, opCode.get(0));
-        flags.set(2, aa);
-        flags.set(1, tc);
-        flags.set(0, rd);
-        buffer.put(Bytes.valueOrZero(flags));
-        flags.set(7, ra);
-        flags.clear(4, 7);
-        final var rCode = BitSet.valueOf(new byte[]{this.rCode.value()});
-        flags.set(3, rCode.get(3));
-        flags.set(2, rCode.get(2));
-        flags.set(1, rCode.get(1));
-        flags.set(0, rCode.get(0));
-        buffer.put(Bytes.valueOrZero(flags));
+        var flags = Booleans.toInt(qr) << 15;
+        flags |= (opCode.value() & 0x0F) << 11;
+        flags |= Booleans.toInt(aa) << 10;
+        flags |= Booleans.toInt(tc) << 9;
+        flags |= Booleans.toInt(rd) << 8;
+        flags |= Booleans.toInt(ra) << 7;
+        flags |= (z & 0x07) << 4;
+        flags |= rCode.value() & 0x0F;
+        buffer.putShort((short) flags);
 
         buffer.putShort(qdCount);
         buffer.putShort(anCount);

@@ -5,17 +5,16 @@ import dns.domain.record.RecordType;
 import dns.util.Labels;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Represents a question in a DNS packet.
  *
- * @param name  The name of the question.
- * @param type  The type of the question.
- * @param clazz The class of the question.
+ * @param name   The name of the question.
+ * @param qType  The type of the question.
+ * @param qClass The class of the question.
  */
-public record Question(List<String> name, RecordType type, RecordClass clazz) implements Writer {
+public record Question(List<String> name, RecordType qType, RecordClass qClass) implements Writer {
 
     public static Question parse(final ByteBuffer buffer) {
         final var labels = Labels.parse(buffer);
@@ -27,8 +26,8 @@ public record Question(List<String> name, RecordType type, RecordClass clazz) im
     @Override
     public void write(final ByteBuffer buffer) {
         Labels.write(buffer, name);
-        type.write(buffer);
-        clazz.write(buffer);
+        qType.write(buffer);
+        qClass.write(buffer);
     }
 
 }

@@ -17,6 +17,32 @@ public record Packet(
         List<ResourceRecord> additionals
 ) implements Writer {
 
+    public static Packet resolving(final Packet incoming) {
+        final var incomingHeader = incoming.header();
+        final var header = new Header(
+                incomingHeader.id(),
+                false,
+                incomingHeader.opCode(),
+                incomingHeader.aa(),
+                incomingHeader.tc(),
+                true,
+                true,
+                incomingHeader.z(),
+                incomingHeader.rCode(),
+                (short) 1,
+                (short) 0,
+                (short) 0,
+                (short) 0
+        );
+        return new Packet(
+                header,
+                incoming.questions(),
+                List.of(),
+                List.of(),
+                List.of()
+        );
+    }
+
     public static Packet parse(final ByteBuffer buffer) {
         final var header = Header.parse(buffer);
 
@@ -45,10 +71,18 @@ public record Packet(
     @Override
     public void write(final ByteBuffer buffer) {
         header.write(buffer);
-        questions.forEach(question -> question.write(buffer));
-        answers.forEach(answer -> answer.write(buffer));
-        authorities.forEach(authority -> authority.write(buffer));
-        additionals.forEach(additional -> additional.write(buffer));
+        for (final var question : questions) {
+            question.write(buffer);
+        }
+        for (final var answer : answers) {
+            answer.write(buffer);
+        }
+        for (final var authority : authorities) {
+            authority.write(buffer);
+        }
+        for (final var additional : additionals) {
+            additional.write(buffer);
+        }
     }
 
 }
