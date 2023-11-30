@@ -1,9 +1,9 @@
 package dns.domain.record;
 
 import dns.domain.Writer;
+import dns.util.Labels;
 
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 /**
@@ -21,9 +21,25 @@ public record ResourceRecord(
         int ttl, short rdLength, byte[] rData
 ) implements Writer {
 
+    public static ResourceRecord parse(final ByteBuffer buffer) {
+        final var labels = Labels.parse(buffer);
+        final var type = RecordType.parse(buffer);
+        final var clazz = RecordClass.parse(buffer);
+        final var ttl = buffer.getInt();
+        final var rdLength = buffer.getShort();
+        final var rData = new byte[rdLength];
+        buffer.get(rData);
+        return new ResourceRecord(labels, type, clazz, ttl, rdLength, rData);
+    }
+
     @Override
     public void write(final ByteBuffer buffer) {
-
+        Labels.write(buffer, name);
+        type.write(buffer);
+        clazz.write(buffer);
+        buffer.putInt(ttl);
+        buffer.putShort(rdLength);
+        buffer.put(rData);
     }
 
 }

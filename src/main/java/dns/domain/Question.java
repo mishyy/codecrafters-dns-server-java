@@ -2,6 +2,7 @@ package dns.domain;
 
 import dns.domain.record.RecordClass;
 import dns.domain.record.RecordType;
+import dns.util.Labels;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -17,12 +18,7 @@ import java.util.List;
 public record Question(List<String> name, RecordType type, RecordClass clazz) implements Writer {
 
     public static Question parse(final ByteBuffer buffer) {
-        final var labels = new ArrayList<String>();
-        for (var length = buffer.get(); length != 0x00; length = buffer.get()) {
-            final var label = new byte[length];
-            buffer.get(label);
-            labels.add(new String(label));
-        }
+        final var labels = Labels.parse(buffer);
         final var type = RecordType.parse(buffer);
         final var clazz = RecordClass.parse(buffer);
         return new Question(labels, type, clazz);
@@ -30,12 +26,7 @@ public record Question(List<String> name, RecordType type, RecordClass clazz) im
 
     @Override
     public void write(final ByteBuffer buffer) {
-        for (final var label : name) {
-            final var bytes = label.getBytes();
-            buffer.put((byte) bytes.length);
-            buffer.put(bytes);
-        }
-        buffer.put((byte) 0x00);
+        Labels.write(buffer, name);
         type.write(buffer);
         clazz.write(buffer);
     }

@@ -14,7 +14,7 @@ public record Packet(
         List<Question> questions,
         List<ResourceRecord> answers,
         List<ResourceRecord> authorities,
-        List<ResourceRecord> additional
+        List<ResourceRecord> additionals
 ) implements Writer {
 
     public static Packet parse(final ByteBuffer buffer) {
@@ -26,29 +26,29 @@ public record Packet(
         }
 
         final var answers = new ArrayList<ResourceRecord>();
-//        for (var i = 0; i < header.anCount(); i++) {
-//            answers.add(ResourceRecord.parseAnswer(buffer));
-//        }
+        for (var i = 0; i < header.anCount(); i++) {
+            answers.add(ResourceRecord.parse(buffer));
+        }
 
         final var authorities = new ArrayList<ResourceRecord>();
-//        for (var i = 0; i < header.nsCount(); i++) {
-//            authorities.add(Question.parseAuthority(buffer));
-//        }
+        for (var i = 0; i < header.nsCount(); i++) {
+            authorities.add(ResourceRecord.parse(buffer));
+        }
 
-        final var additional = new ArrayList<ResourceRecord>();
-//        for (var i = 0; i < header.arCount(); i++) {
-//            additional.add(Question.parseAdditional(buffer));
-//        }
-        return new Packet(header, questions, answers, authorities, additional);
+        final var additionals = new ArrayList<ResourceRecord>();
+        for (var i = 0; i < header.arCount(); i++) {
+            additionals.add(ResourceRecord.parse(buffer));
+        }
+        return new Packet(header, questions, answers, authorities, additionals);
     }
 
     @Override
     public void write(final ByteBuffer buffer) {
         header.write(buffer);
         questions.forEach(question -> question.write(buffer));
-//        answers.forEach(answer -> answer.write(buffer));
-//        authorities.forEach(authority -> authority.write(buffer));
-//        additional.forEach(addition -> addition.write(buffer));
+        answers.forEach(answer -> answer.write(buffer));
+        authorities.forEach(authority -> authority.write(buffer));
+        additionals.forEach(additional -> additional.write(buffer));
     }
 
 }
